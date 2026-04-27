@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyMind AI - Your AI Study Companion</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .font-display {
+            font-family: 'Playfair Display', serif;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(201, 168, 76, 0.3);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(201, 168, 76, 0.5);
+        }
+        
+        /* Gradient Background */
+        .gradient-bg {
+            background: linear-gradient(135deg, #0f0f12 0%, #1a1a1f 100%);
+        }
+        
+        /* Gold Gradient */
+        .gold-gradient {
+            background: linear-gradient(135deg, #C9A84C 0%, #E8C96A 100%);
+        }
+        
+        /* Card Hover Effect */
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(201, 168, 76, 0.15);
+        }
+        
+        /* Flashcard Flip Animation */
+        .flashcard-container {
+            perspective: 1000px;
+        }
+        
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        
+        .flashcard-container.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .flashcard-front, .flashcard-back {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        
+        .flashcard-back {
+            transform: rotateY(180deg);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+        }
+        
+        /* Pulse Animation */
+        @keyframes pulse-gold {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(201, 168, 76, 0.7);
+            }
+            50% {
+                box-shadow: 0 0 0 10px rgba(201, 168, 76, 0);
+            }
+        }
+        
+        .pulse-gold {
+            animation: pulse-gold 2s infinite;
+        }
+        
+        /* Fade In Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid rgba(201, 168, 76, 0.1);
+            border-top: 3px solid #C9A84C;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Tab Active State */
+        .tab-active {
+            color: #C9A84C !important;
+            border-bottom: 2px solid #C9A84C !important;
+        }
+    </style>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            DEFAULT: '#C9A84C',
+                            light: '#E8C96A',
+                            dark: '#A68A3D',
+                        },
+                        dark: {
+                            DEFAULT: '#0f0f12',
+                            light: '#1a1a1f',
+                            lighter: '#2a2a2f',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="gradient-bg min-h-screen text-gray-100">
+    
+    <!-- Sidebar -->
+    <div class="fixed left-0 top-0 h-full w-80 bg-dark border-r border-gray-800 overflow-y-auto z-50">
+        <div class="p-6">
+            <!-- Logo -->
+            <div class="text-center mb-8 pb-6 border-b border-gray-800">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-gold/20 to-gold/10 border border-gold/30 flex items-center justify-center">
+                    <i class="fas fa-brain text-3xl text-gold"></i>
+                </div>
+                <h1 class="font-display text-2xl font-bold text-gold mb-1">StudyMind</h1>
+                <p class="text-xs text-gray-500 tracking-widest uppercase">AI · Powered · Learning</p>
+            </div>
+            
+            <!-- Upload Section -->
+            <div class="mb-6">
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Your Document</label>
+                <div class="relative">
+                    <input type="file" id="pdfUpload" accept=".pdf" class="hidden">
+                    <label for="pdfUpload" class="block cursor-pointer">
+                        <div class="border-2 border-dashed border-gold/30 rounded-xl p-6 text-center hover:border-gold hover:bg-gold/5 transition-all">
+                            <i class="fas fa-cloud-upload-alt text-3xl text-gold mb-2"></i>
+                            <p class="text-sm text-gold font-medium">Click to upload PDF</p>
+                            <p class="text-xs text-gray-500 mt-1">Max 200MB</p>
+                        </div>
+                    </label>
+                </div>
+                
+                <!-- File Name Display -->
+                <div id="fileName" class="hidden mt-3 p-3 bg-gray-800/50 rounded-lg text-sm text-gray-300">
+                    <i class="fas fa-file-pdf text-gold mr-2"></i>
+                    <span id="fileNameText"></span>
+                </div>
+                
+                <!-- Process Button -->
+                <button id="processBtn" class="hidden w-full mt-3 gold-gradient text-dark font-semibold py-3 px-4 rounded-xl hover:opacity-90 transition-all shadow-lg">
+                    <i class="fas fa-bolt mr-2"></i>Process PDF
+                </button>
+            </div>
+            
+            <!-- Status -->
+            <div id="statusPill" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-800/50 border border-gray-700 text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <span class="w-2 h-2 rounded-full bg-gray-500"></span>
+                No document loaded
+            </div>
+            
+            <!-- Divider -->
+            <div class="h-px bg-gray-800 my-6"></div>
+            
+            <!-- Footer -->
+            <div class="text-xs text-gray-600 leading-relaxed">
+                Built with LangChain · FAISS · Gemini<br>
+                FastAPI · Modern UI
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="ml-80 p-8">
+        <!-- Header -->
+        <div class="mb-8 pb-6 border-b border-gray-800">
+            <h2 class="font-display text-4xl font-bold text-white mb-2">Your AI Study Companion</h2>
+            <div class="w-12 h-1 gold-gradient rounded-full mb-3"></div>
+            <p class="text-gray-400">Upload any PDF and instantly get answers, quizzes, and flashcards powered by AI</p>
+        </div>
+        
+        <!-- Stats -->
+        <div class="grid grid-cols-3 gap-4 mb-8">
+            <div class="bg-dark-light border border-gray-800 rounded-2xl p-6 card-hover">
+                <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Questions Asked</div>
+                <div class="font-display text-3xl font-bold text-gold" id="questionsCount">—</div>
+                <div class="text-xs text-gray-500 mt-1">This session</div>
+            </div>
+            <div class="bg-dark-light border border-gray-800 rounded-2xl p-6 card-hover">
+                <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Document Status</div>
+                <div class="font-display text-3xl font-bold text-gold" id="docStatus">—</div>
+                <div class="text-xs text-gray-500 mt-1" id="docStatusText">No document yet</div>
+            </div>
+            <div class="bg-dark-light border border-gray-800 rounded-2xl p-6 card-hover">
+                <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">AI Engine</div>
+                <div class="font-display text-2xl font-bold text-gold pt-1">Gemini</div>
+                <div class="text-xs text-gray-500 mt-1">LangChain · FAISS</div>
+            </div>
+        </div>
+        
+        <!-- Tabs -->
+        <div class="mb-8">
+            <div class="flex gap-6 border-b border-gray-800">
+                <button class="tab-btn tab-active px-4 py-3 text-sm font-medium transition-all" data-tab="ask">
+                    <i class="fas fa-comments mr-2"></i>Ask Questions
+                </button>
+                <button class="tab-btn px-4 py-3 text-sm font-medium text-gray-400 transition-all" data-tab="mcq">
+                    <i class="fas fa-question-circle mr-2"></i>MCQ Quiz
+                </button>
+                <button class="tab-btn px-4 py-3 text-sm font-medium text-gray-400 transition-all" data-tab="flashcards">
+                    <i class="fas fa-layer-group mr-2"></i>Flashcards
+                </button>
+                <button class="tab-btn px-4 py-3 text-sm font-medium text-gray-400 transition-all" data-tab="history">
+                    <i class="fas fa-history mr-2"></i>History
+                </button>
+            </div>
+        </div>
+        
+        <!-- Tab Content -->
+        <div id="tabContent">
+            
+            <!-- Ask Questions Tab -->
+            <div id="askTab" class="tab-content">
+                <h3 class="font-display text-2xl font-semibold mb-2">Ask Anything</h3>
+                <p class="text-gray-400 text-sm mb-6">Questions are answered exclusively from your uploaded document</p>
+                
+                <!-- Chat History -->
+                <div id="chatHistory" class="mb-6 space-y-4"></div>
+                
+                <!-- Input -->
+                <div class="flex gap-3">
+                    <input type="text" id="questionInput" placeholder="e.g. Explain the difference between a stack and a queue" 
+                           class="flex-1 bg-dark-light border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 transition-all">
+                    <button id="askBtn" class="gold-gradient text-dark font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition-all shadow-lg">
+                        <i class="fas fa-paper-plane mr-2"></i>Ask
+                    </button>
+                </div>
+                
+                <!-- Empty State -->
+                <div id="askEmpty" class="mt-12 text-center py-16 border-2 border-dashed border-gray-800 rounded-2xl">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-full border-2 border-gold/30 bg-gold/10 flex items-center justify-center">
+                        <i class="fas fa-comments text-2xl text-gold"></i>
+                    </div>
+                    <p class="text-gray-400">Upload a PDF from the sidebar, then ask questions here.<br>The AI will answer only from your document.</p>
+                </div>
+            </div>
+            
+            <!-- MCQ Tab -->
+            <div id="mcqTab" class="tab-content hidden">
+                <h3 class="font-display text-2xl font-semibold mb-2">Multiple Choice Quiz</h3>
+                <p class="text-gray-400 text-sm mb-6">Auto-generated questions with highlighted correct answers</p>
+                
+                <!-- Controls -->
+                <div class="grid grid-cols-4 gap-4 mb-6">
+                    <div class="col-span-3">
+                        <input type="text" id="mcqTopic" placeholder="e.g. data structures, operating systems, databases" 
+                               class="w-full bg-dark-light border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 transition-all">
+                    </div>
+                    <div>
+                        <select id="mcqCount" class="w-full bg-dark-light border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 transition-all">
+                            <option value="3">3 Questions</option>
+                            <option value="5" selected>5 Questions</option>
+                            <option value="7">7 Questions</option>
+                            <option value="10">10 Questions</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button id="generateMcqBtn" class="gold-gradient text-dark font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition-all shadow-lg mb-6">
+                    <i class="fas fa-bolt mr-2"></i>Generate Quiz
+                </button>
+                
+                <!-- MCQ Results -->
+                <div id="mcqResults" class="space-y-4"></div>
+                
+                <!-- Empty State -->
+                <div id="mcqEmpty" class="text-center py-16 border-2 border-dashed border-gray-800 rounded-2xl">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-full border-2 border-gold/30 bg-gold/10 flex items-center justify-center">
+                        <i class="fas fa-question-circle text-2xl text-gold"></i>
+                    </div>
+                    <p class="text-gray-400">Enter a topic and generate a quiz from your PDF.<br>Correct answers are highlighted in green.</p>
+                </div>
+            </div>
+            
+            <!-- Flashcards Tab -->
+            <div id="flashcardsTab" class="tab-content hidden">
+                <h3 class="font-display text-2xl font-semibold mb-2">Flashcard Deck</h3>
+                <p class="text-gray-400 text-sm mb-6">Click any card to flip and reveal the answer</p>
+                
+                <!-- Controls -->
+                <div class="grid grid-cols-4 gap-4 mb-6">
+                    <div class="col-span-3">
+                        <input type="text" id="flashcardTopic" placeholder="e.g. Python basics, machine learning, web development" 
+                               class="w-full bg-dark-light border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 transition-all">
+                    </div>
+                    <div>
+                        <select id="flashcardCount" class="w-full bg-dark-light border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 transition-all">
+                            <option value="3">3 Cards</option>
+                            <option value="5" selected>5 Cards</option>
+                            <option value="7">7 Cards</option>
+                            <option value="10">10 Cards</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button id="generateFlashcardsBtn" class="gold-gradient text-dark font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition-all shadow-lg mb-6">
+                    <i class="fas fa-magic mr-2"></i>Generate Flashcards
+                </button>
+                
+                <!-- Flashcard Results -->
+                <div id="flashcardResults" class="grid grid-cols-2 gap-4"></div>
+                
+                <!-- Empty State -->
+                <div id="flashcardsEmpty" class="text-center py-16 border-2 border-dashed border-gray-800 rounded-2xl">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-full border-2 border-gold/30 bg-gold/10 flex items-center justify-center">
+                        <i class="fas fa-layer-group text-2xl text-gold"></i>
+                    </div>
+                    <p class="text-gray-400">Enter a topic and generate beautiful flashcards from your document.<br>Click each card to flip between question and answer.</p>
+                </div>
+            </div>
+            
+            <!-- History Tab -->
+            <div id="historyTab" class="tab-content hidden">
+                <h3 class="font-display text-2xl font-semibold mb-2">Saved History</h3>
+                <p class="text-gray-400 text-sm mb-6">Search saved chats, MCQs, and flashcards</p>
+                
+                <!-- History Content -->
+                <div id="historyResults" class="space-y-4">
+                    <div class="text-center py-16 border-2 border-dashed border-gray-800 rounded-2xl">
+                        <div class="w-16 h-16 mx-auto mb-4 rounded-full border-2 border-gold/30 bg-gold/10 flex items-center justify-center">
+                            <i class="fas fa-history text-2xl text-gold"></i>
+                        </div>
+                        <p class="text-gray-400">No saved items yet. Start by asking questions or generating content.</p>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+    
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div class="bg-dark-light border border-gray-800 rounded-2xl p-8 text-center">
+            <div class="spinner mx-auto mb-4"></div>
+            <p class="text-white font-medium" id="loadingText">Processing...</p>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>

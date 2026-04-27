@@ -1,0 +1,81 @@
+# ========================= Python & Virtual Environment =========================
+venv/
+venv.bak/
+.venv/
+env/
+ENV/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ========================= Project Specific =========================
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Uploaded files & temporary folders
+uploads/
+vectorstore/
+
+# Database
+*.db
+*.sqlite3
+study_assistant.db
+
+# Logs
+*.log
+logs/
+
+# ========================= IDE & Editor =========================
+# VS Code
+.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# PyCharm / IntelliJ
+.idea/
+*.iml
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# ========================= OS & Misc =========================
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*~
